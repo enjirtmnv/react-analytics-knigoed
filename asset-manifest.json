@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/react-analytics-knigoed/static/css/main.073c9b0a.css",
+    "main.js": "/react-analytics-knigoed/static/js/main.4f1c3f15.js",
+    "index.html": "/react-analytics-knigoed/index.html",
+    "main.073c9b0a.css.map": "/react-analytics-knigoed/static/css/main.073c9b0a.css.map",
+    "main.4f1c3f15.js.map": "/react-analytics-knigoed/static/js/main.4f1c3f15.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.073c9b0a.css",
+    "static/js/main.4f1c3f15.js"
+  ]
+}
