@@ -101,10 +101,8 @@ function App() {
 
                     setDataUpdate(dataTable);
 
-                    const newDataTable = removeIdFromDuplicate(
-                        groupingTableBrandNameYear(
-                            sortTableBrandNameYear(dataTable)
-                        )
+                    const newDataTable = groupingTableBrandNameYear(
+                        sortTableBrandNameYear(dataTable)
                     );
 
                     setData(newDataTable);
