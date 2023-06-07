@@ -27,45 +27,31 @@ function App() {
 
     const yo = [];
 
-    const removeIdFromDuplicate = (arr: any) => {
-        return arr.reduce((res: any, val: any) => {
-            return val["Дубликаты"] > 1
-                ? [...res, { ...val, "Артикул продавца": "" }]
-                : [...res, val];
-        }, []);
-    };
+    // const removeIdFromDuplicate = (arr: any) => {
+    //     return arr.reduce((res: any, val: any) => {
+    //         return val["Дубликаты"] > 1
+    //             ? [...res, { ...val, "Артикул продавца": "" }]
+    //             : [...res, val];
+    //     }, []);
+    // };
 
     const handleAuthor = () => {
-        setData(
-            removeIdFromDuplicate(
-                groupingTableAuthor(sortTableAuthor(dataUpdate))
-            )
-        );
+        setData(groupingTableAuthor(sortTableAuthor(dataUpdate)));
         setMode("Автор");
         setInputBrand("");
     };
     const handleName = () => {
-        setData(
-            removeIdFromDuplicate(groupingTableName(sortTableName(dataUpdate)))
-        );
+        setData(groupingTableName(sortTableName(dataUpdate)));
         setMode("Наименование");
         setInputBrand("");
     };
     const handleSeries = () => {
-        setData(
-            removeIdFromDuplicate(
-                groupingTableSeries(sortTableSeries(dataUpdate))
-            )
-        );
+        setData(groupingTableSeries(sortTableSeries(dataUpdate)));
         setMode("Серия");
         setInputBrand("");
     };
     const handleBrandNameYear = () => {
-        setData(
-            removeIdFromDuplicate(
-                groupingTableBrandNameYear(sortTableBrandNameYear(dataUpdate))
-            )
-        );
+        setData(groupingTableBrandNameYear(sortTableBrandNameYear(dataUpdate)));
         setMode("Бренд/Имя/Год");
         setInputBrand("");
     };
@@ -126,36 +112,20 @@ function App() {
         });
 
         if (mode === "Автор") {
-            setData(
-                removeIdFromDuplicate(
-                    groupingTableAuthor(sortTableAuthor(filterData))
-                )
-            );
+            setData(groupingTableAuthor(sortTableAuthor(filterData)));
         }
 
         if (mode === "Наименование") {
-            setData(
-                removeIdFromDuplicate(
-                    groupingTableName(sortTableName(filterData))
-                )
-            );
+            setData(groupingTableName(sortTableName(filterData)));
         }
 
         if (mode === "Серия") {
-            setData(
-                removeIdFromDuplicate(
-                    groupingTableSeries(sortTableSeries(filterData))
-                )
-            );
+            setData(groupingTableSeries(sortTableSeries(filterData)));
         }
 
         if (mode === "Бренд/Имя/Год") {
             setData(
-                removeIdFromDuplicate(
-                    groupingTableBrandNameYear(
-                        sortTableBrandNameYear(filterData)
-                    )
-                )
+                groupingTableBrandNameYear(sortTableBrandNameYear(filterData))
             );
         }
     };
