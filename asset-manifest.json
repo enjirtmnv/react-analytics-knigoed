@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/react-analytics-knigoed/static/css/main.e6c13ad2.css",
-    "main.js": "/react-analytics-knigoed/static/js/main.a72deaf3.js",
+    "main.js": "/react-analytics-knigoed/static/js/main.16ddb94b.js",
     "index.html": "/react-analytics-knigoed/index.html",
     "main.e6c13ad2.css.map": "/react-analytics-knigoed/static/css/main.e6c13ad2.css.map",
-    "main.a72deaf3.js.map": "/react-analytics-knigoed/static/js/main.a72deaf3.js.map"
+    "main.16ddb94b.js.map": "/react-analytics-knigoed/static/js/main.16ddb94b.js.map"
   },
   "entrypoints": [
     "static/css/main.e6c13ad2.css",
-    "static/js/main.a72deaf3.js"
+    "static/js/main.16ddb94b.js"
   ]
 }
