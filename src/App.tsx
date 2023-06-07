@@ -20,12 +20,22 @@ function App() {
     const [dataUpdate, setDataUpdate] = useState<any>([]);
     const [header, setHeader] = useState([]);
     const [mode, setMode] = useState("Бренд/Имя/Год");
-    const [opa, setOpa] = useState(null);
+    const [countSold, setCountSold] = useState(0);
 
     const [inputBrand, setInputBrand] = useState<string>("");
     const [inputName, setInputName] = useState<string>("");
 
     const yo = [];
+
+    const countSoldHandle = (arr: any) => {
+        return arr
+            .reduce((res: any, val: any) => {
+                return res + Number(val["К перечислению за товар, руб."]);
+            }, 0)
+            .toFixed(2)
+            .toString()
+            .replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    };
 
     const removeSoldOut = () => {
         const daa = data.filter((el: any) => {
@@ -96,6 +106,7 @@ function App() {
                         sortTableBrandNameYear(dataTable)
                     );
 
+                    setCountSold(countSoldHandle(dataTable));
                     setData(newDataTable);
                     setHeader(headerTableNew);
                 }
@@ -368,7 +379,14 @@ function App() {
         }
         if (item === "К перечислению за товар, руб.") {
             return {
-                title: item,
+                title: (
+                    <>
+                        <p>{item}</p>
+                        <Tag color={"green"} key={1}>
+                            {countSold}
+                        </Tag>
+                    </>
+                ),
                 dataIndex: item,
                 sorter: (a: any, b: any) => b[item] - a[item],
                 key: uuidv4(),
