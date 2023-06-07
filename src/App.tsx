@@ -27,14 +27,14 @@ function App() {
 
     const yo = [];
 
-    const yoyo = () => {
+    const removeSoldOut = () => {
         const daa = data.filter((el: any) => {
-            if (el['Текущий остаток, шт.'] > 0) {
-                return el
+            if (el["Текущий остаток, шт."] > 0) {
+                return el;
             }
-        })
-        setData(daa)
-    } 
+        });
+        setData(daa);
+    };
 
     // const removeIdFromDuplicate = (arr: any) => {
     //     return arr.reduce((res: any, val: any) => {
@@ -516,7 +516,7 @@ function App() {
                     color: "white",
                 }}
                 type="primary"
-                onClick={yoyo}
+                onClick={removeSoldOut}
             >
                 Убрать проданное
             </Button>
