@@ -27,6 +27,15 @@ function App() {
 
     const yo = [];
 
+    const yoyo = () => {
+        const daa = data.filter((el: any) => {
+            if (el['Текущий остаток, шт.'] > 0) {
+                return el
+            }
+        })
+        setData(daa)
+    } 
+
     // const removeIdFromDuplicate = (arr: any) => {
     //     return arr.reduce((res: any, val: any) => {
     //         return val["Дубликаты"] > 1
@@ -38,22 +47,18 @@ function App() {
     const handleAuthor = () => {
         setData(groupingTableAuthor(sortTableAuthor(dataUpdate)));
         setMode("Автор");
-        setInputBrand("");
     };
     const handleName = () => {
         setData(groupingTableName(sortTableName(dataUpdate)));
         setMode("Наименование");
-        setInputBrand("");
     };
     const handleSeries = () => {
         setData(groupingTableSeries(sortTableSeries(dataUpdate)));
         setMode("Серия");
-        setInputBrand("");
     };
     const handleBrandNameYear = () => {
         setData(groupingTableBrandNameYear(sortTableBrandNameYear(dataUpdate)));
         setMode("Бренд/Имя/Год");
-        setInputBrand("");
     };
 
     const handleFile = (e: any) => {
@@ -400,25 +405,17 @@ function App() {
         };
     });
 
-    // const removeIdFromDuplicate2 = (arr: any) => {
-    //     return arr.reduce((res: any, val: any) => {
-    //         return val["Дубликаты"] > 1
-    //             ? [...res, { ...val, "Артикул продавца": "" }]
-    //             : [...res, val];
-    //     }, []);
-    // };
-
     const handleDownload = () => {
         let i = 0;
         const dataForDownload = data.reduce((res: any, val: any, index) => {
             if (val["Дубликаты"] > 1) {
                 const duplicateID = val["Список дубликатов"]
                     .map((el: any) => el["Артикул продавца"])
-                    .join(" ");
+                    .join(`\n`);
                 i++;
                 return (
                     res +
-                    ` ${i}) "${val["Наименование"]}" "${val["Бренд"]}" ${val["Год"]} \n ${duplicateID} \n`
+                    `${i}) "${val["Наименование"]}" "${val["Бренд"]}" ${val["Год"]} \n${duplicateID}\n`
                 );
             } else {
                 return res;
@@ -510,6 +507,18 @@ function App() {
                 onClick={handleSeries}
             >
                 Серия
+            </Button>
+
+            <Button
+                style={{
+                    margin: "8px",
+                    backgroundColor: "pink",
+                    color: "white",
+                }}
+                type="primary"
+                onClick={yoyo}
+            >
+                Убрать проданное
             </Button>
 
             <Table
