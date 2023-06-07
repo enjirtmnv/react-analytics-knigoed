@@ -1,146 +1,74 @@
-// import React from "react";
-// import Table from "./views/TableBook";
-
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, Key } from "react";
 import { v4 as uuidv4 } from "uuid";
-
 import * as XLSX from "xlsx";
-
 import { SearchOutlined, UploadOutlined } from "@ant-design/icons";
-import { Button, Input, Space, Table, Upload } from "antd";
-
-import Highlighter from "react-highlight-words";
-// import { useRef, useState } from 'react';
+import { Button, Input, Space, Table, Upload, Tag } from "antd";
+import { sortTableBrandNameYear } from "./helpers/sortTableBrandNameYear";
+import { sortTableAuthor } from "./helpers/sortTableAuthor";
+import { sortTableName } from "./helpers/sortTableName";
+import { sortTableSeries } from "./helpers/sortTableSeries";
+import { groupingTableBrandNameYear } from "./helpers/groupingTableBrandNameYear";
+import { groupingTableName } from "./helpers/groupingTableName";
+import { groupingTableSeries } from "./helpers/groupingTableSeries";
+import { groupingTableAuthor } from "./helpers/groupingTableAuthor";
+import { FilterDropdownProps } from "antd/es/table/interface";
+import InputCustom from "./InputCustom";
 
 function App() {
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState([]);
+    const [dataUpdate, setDataUpdate] = useState<any>([]);
     const [header, setHeader] = useState([]);
-    const [isSort, setIsSort] = useState(true);
+    const [mode, setMode] = useState("Бренд/Имя/Год");
+    const [opa, setOpa] = useState(null);
 
-    const [searchAuthor, setSearchAuthor] = useState("");
-    const [searchSeries, setSearchSeries] = useState("");
-    const [inputFocus, setInputFocus] = useState("Бренд");
-    const [filterFocus, setFilterFocus] = useState("");
+    const [inputBrand, setInputBrand] = useState<string>("");
+    const [inputName, setInputName] = useState<string>("");
 
-    const handleLoadingChange = () => {
-        console.log(loading);
+    const yo = [];
+
+    const removeIdFromDuplicate = (arr: any) => {
+        return arr.reduce((res: any, val: any) => {
+            return val["Дубликаты"] > 1
+                ? [...res, { ...val, "Артикул продавца": "" }]
+                : [...res, val];
+        }, []);
     };
 
-    // useEffect(() => {
-    //     console.log("loading", loading);
-    // }, [loading]);
-
-    const handleInputAuthor = (e: any) => {
-        setInputFocus("Автор");
-        setFilterFocus(e.target.value);
-        setSearchAuthor(e.target.value);
+    const handleAuthor = () => {
+        setData(
+            removeIdFromDuplicate(
+                groupingTableAuthor(sortTableAuthor(dataUpdate))
+            )
+        );
+        setMode("Автор");
+        setInputBrand("");
     };
-
-    const handleInputSeries = (e: any) => {
-        setInputFocus("Серия");
-        setFilterFocus(e.target.value);
-        setSearchSeries(e.target.value);
+    const handleName = () => {
+        setData(
+            removeIdFromDuplicate(groupingTableName(sortTableName(dataUpdate)))
+        );
+        setMode("Наименование");
+        setInputBrand("");
     };
-
-    const mySort = (arr: any) => {
-        const wow = arr.sort((a: any, b: any) => {
-            if (a["Бренд"] < b["Бренд"]) {
-                return -1;
-            }
-            if (a["Бренд"] > b["Бренд"]) {
-                return 1;
-            }
-            return 0;
-        });
-
-        const wow2 = wow.sort((a: any, b: any) => {
-            if (a["Бренд"] === b["Бренд"]) {
-                if (a["Наименование"] < b["Наименование"]) {
-                    return -1;
-                }
-                if (a["Наименование"] > b["Наименование"]) {
-                    return 1;
-                }
-                return 0;
-            }
-        });
-        const wow3 = wow2.sort((a: any, b: any) => {
-            if (
-                a["Бренд"] === b["Бренд"] &&
-                a["Наименование"] === b["Наименование"]
-            ) {
-                if (a["Год"] < b["Год"]) {
-                    return -1;
-                }
-                if (a["Год"] > b["Год"]) {
-                    return 1;
-                }
-                return 0;
-            }
-        });
-        return wow3;
+    const handleSeries = () => {
+        setData(
+            removeIdFromDuplicate(
+                groupingTableSeries(sortTableSeries(dataUpdate))
+            )
+        );
+        setMode("Серия");
+        setInputBrand("");
     };
-
-    function myGroup(array: any) {
-        const myArr: any = [];
-        const myObj: any = {};
-
-        for (var i = 0; i < array.length; i++) {
-            let brand =
-                array[i]["Бренд"] + array[i]["Наименование"] + array[i]["Год"];
-
-            if (myObj[brand]) {
-                myObj[brand].push(array[i]);
-            } else {
-                myObj[brand] = [array[i]];
-            }
-        }
-
-        for (let value of (Object as any).values(myObj)) {
-            myArr.push({
-                ["Бренд"]: value[0]["Бренд"],
-                ["Наименование"]: value[0]["Наименование"],
-                ["Год"]: value[0]["Год"],
-                ["Автор"]: value[0]["Автор"],
-                ["Серия"]: value[0]["Серия"],
-                ["Языки"]: value[0]["Языки"],
-                ["Артикул продавца"]: value[0]["Артикул продавца"],
-                ["Заказали шт."]: value[0]["Заказали шт."],
-                ["Поступления шт."]: value.reduce(
-                    (res: any, val: any) => res + val["Поступления шт."],
-                    0
-                ),
-                ["Выкупили, шт."]: value.reduce(
-                    (res: any, val: any) => res + val["Выкупили, шт."],
-                    0
-                ),
-                ["Сумма заказов минус комиссия WB, руб."]: value
-                    .reduce(
-                        (res: any, val: any) =>
-                            res + val["Сумма заказов минус комиссия WB, руб."],
-                        0
-                    )
-                    .toFixed(2),
-                ["Текущий остаток, шт."]: value.reduce(
-                    (res: any, val: any) => res + val["Текущий остаток, шт."],
-                    0
-                ),
-                ["К перечислению за товар, руб."]: value
-                    .reduce(
-                        (res: any, val: any) =>
-                            res + val["К перечислению за товар, руб."],
-                        0
-                    )
-                    .toFixed(2),
-                ["Список дубликатов"]: value,
-                ["Дубликаты"]: value.length,
-                ["Предмет"]: value[0]["Предмет"],
-                key: uuidv4(),
-            });
-        }
-        return myArr;
-    }
+    const handleBrandNameYear = () => {
+        setData(
+            removeIdFromDuplicate(
+                groupingTableBrandNameYear(sortTableBrandNameYear(dataUpdate))
+            )
+        );
+        setMode("Бренд/Имя/Год");
+        setInputBrand("");
+    };
 
     const handleFile = (e: any) => {
         e.preventDefault();
@@ -149,11 +77,9 @@ function App() {
         if (files && files[0]) {
             const reader = new FileReader();
             reader.onloadstart = () => {
-                // console.log("start");
                 setLoading(true);
             };
             reader.onloadend = () => {
-                // console.log("end");
                 setLoading(false);
             };
             reader.onload = (e) => {
@@ -173,7 +99,13 @@ function App() {
                         ...headerTable,
                     ]);
 
-                    const newDataTable = myGroup(mySort(dataTable));
+                    setDataUpdate(dataTable);
+
+                    const newDataTable = removeIdFromDuplicate(
+                        groupingTableBrandNameYear(
+                            sortTableBrandNameYear(dataTable)
+                        )
+                    );
 
                     setData(newDataTable);
                     setHeader(headerTableNew);
@@ -183,58 +115,67 @@ function App() {
         }
     };
 
-    // const filteredData = () => {
-    //   if (searchSeries && searchAuthor) {
-    //     const newData = data.filter((item) => {
-    //       return item["Автор"].toLowerCase().includes(searchAuthor.toLowerCase());
-    //     });
-    //     return newData.filter((item) => {
-    //       return item["Серия"].toLowerCase().includes(searchSeries.toLowerCase());
-    //     });
-    //   }
-    //   return data.filter((item) => {
-    //     return item[inputFocus].toLowerCase().includes(filterFocus.toLowerCase());
-    //   });
-    // };
-
-    const [searchText, setSearchText] = useState("");
-    const [searchedColumn, setSearchedColumn] = useState("");
     const searchInput = useRef<any>(null);
+    const inputRef = useRef<any>(null);
+    const inputRefName = useRef<any>(null);
 
-    const handleSearch = (selectedKeys: string[], dataIndex: any) => {
-        // console.log('МММММММММ',searchText, searchedColumn, searchInput);
-        // confirm();
-        // console.log("selectedKeys", selectedKeys);
+    const filteringTable = (arr: any, dataIndex: any, value: any) => {
+        const filterData = arr.filter((item: any) => {
+            return item[dataIndex]
+                ?.toString()
+                .toLowerCase()
+                .includes(value.toLowerCase());
+        });
 
-        setSearchText(selectedKeys[0]);
-        setSearchedColumn(dataIndex);
+        if (mode === "Автор") {
+            setData(
+                removeIdFromDuplicate(
+                    groupingTableAuthor(sortTableAuthor(filterData))
+                )
+            );
+        }
+
+        if (mode === "Наименование") {
+            setData(
+                removeIdFromDuplicate(
+                    groupingTableName(sortTableName(filterData))
+                )
+            );
+        }
+
+        if (mode === "Серия") {
+            setData(
+                removeIdFromDuplicate(
+                    groupingTableSeries(sortTableSeries(filterData))
+                )
+            );
+        }
+
+        if (mode === "Бренд/Имя/Год") {
+            setData(
+                removeIdFromDuplicate(
+                    groupingTableBrandNameYear(
+                        sortTableBrandNameYear(filterData)
+                    )
+                )
+            );
+        }
     };
 
-    const handleReset = (clearFilters: () => void) => {
-        clearFilters();
-        setSearchText("");
-    };
-
-    const getColumnSearchProps = (dataIndex: any) => ({
+    const getColumnSearch = (dataIndex: any) => ({
         filterDropdown: ({
             setSelectedKeys,
             selectedKeys,
             confirm,
             clearFilters,
             close,
-        }: any) => (
+        }: FilterDropdownProps) => (
             <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
                 <Input
-                    ref={(el) => {
-                        // console.log('REFFF',el);
-                        searchInput.current = el;
-                    }}
+                    ref={(el) => (searchInput.current = el)}
                     placeholder={`Search ${dataIndex}`}
                     value={selectedKeys[0]}
                     onChange={(e) => {
-                        console.log(selectedKeys);
-
-                        // setSearchText(selectedKeys[0])
                         setSelectedKeys(e.target.value ? [e.target.value] : []);
                     }}
                     onPressEnter={() => confirm()}
@@ -251,25 +192,12 @@ function App() {
                         Search
                     </Button>
                     <Button
-                        onClick={() =>
-                            clearFilters && handleReset(clearFilters)
-                        }
+                        onClick={() => clearFilters && clearFilters()}
                         size="small"
                         style={{ width: 90 }}
                     >
                         Reset
                     </Button>
-                    {/* <Button
-                        type="link"
-                        size="small"
-                        onClick={() => {
-                            confirm({ closeDropdown: false });
-                            setSearchText((selectedKeys as string[])[0]);
-                            setSearchedColumn(dataIndex);
-                        }}
-                    >
-                        Filter
-                    </Button> */}
                     <Button
                         type="link"
                         size="small"
@@ -288,132 +216,41 @@ function App() {
             />
         ),
         onFilter: (value: any, record: any) => {
-            console.log("record", record[dataIndex], value);
+            // setOpa(value)
+            // console.log(opa,'||||',value, record )
+            yo.push(record);
             return record[dataIndex]
                 ?.toString()
                 .toLowerCase()
                 .includes((value as string).toLowerCase());
         },
-
         onFilterDropdownOpenChange: (visible: any) => {
             //   if (visible) {
             //     setTimeout(() => searchInput.current?.select(), 100);
             //   }
         },
-        render: (text: any) => {
-            return (
-                <Highlighter
-                    highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
-                    searchWords={[searchText]}
-                    autoEscape
-                    textToHighlight={text ? text.toString() : ""}
-                />
-            );
-        },
+        render: (text: any) => text,
     });
 
-    useEffect(() => {
-        console.log("AAAAAAAA", searchText, searchedColumn, searchInput);
-    }, [searchText, searchedColumn, searchInput]);
+    const handleChangeInputBrand = (e: any) => {
+        setInputBrand(e.target.value);
+    };
+    const handleChangeInputName = (e: any) => {
+        setInputName(e.target.value);
+    };
 
-    // useEffect(() => {
-    //     console.log('searchInput', searchInput);
-
-    // }, [searchInput])
-
-    const columns3 = [
-        {
-            title: "Дубликаты",
-            dataIndex: "Дубликаты",
-            sorter: (a: any, b: any) => a["Дубликаты"] - b["Дубликаты"],
-            key: uuidv4(),
-            // fixed: 'left',
-        },
-        {
-            title: "Текущий остаток, шт.",
-            dataIndex: "Текущий остаток, шт.",
-            sorter: (a: any, b: any) =>
-                a["Текущий остаток, шт."] - b["Текущий остаток, шт."],
-            key: uuidv4(),
-        },
-        {
-            title: "К перечислению за товар, руб.",
-            dataIndex: "К перечислению за товар, руб.",
-            sorter: (a: any, b: any) =>
-                a["К перечислению за товар, руб."] -
-                b["К перечислению за товар, руб."],
-            key: uuidv4(),
-        },
-        {
-            title: "Поступления шт.",
-            dataIndex: "Поступления шт.",
-            sorter: (a: any, b: any) =>
-                a["Поступления шт."] - b["Поступления шт."],
-            key: uuidv4(),
-        },
-        {
-            title: "Выкупили, шт.",
-            dataIndex: "Выкупили, шт.",
-            sorter: (a: any, b: any) => a["Выкупили, шт."] - b["Выкупили, шт."],
-            key: uuidv4(),
-        },
-        {
-            title: "Заказали, шт.",
-            dataIndex: "Заказали, шт.",
-            sorter: (a: any, b: any) => a["Заказали, шт."] - b["Заказали, шт."],
-            key: uuidv4(),
-        },
-        {
-            title: "Сумма заказов минус комиссия WB, руб.",
-            dataIndex: "Сумма заказов минус комиссия WB, руб.",
-            sorter: (a: any, b: any) =>
-                a["Сумма заказов минус комиссия WB, руб."] -
-                b["Сумма заказов минус комиссия WB, руб."],
-            key: uuidv4(),
-            // fixed: 'right',
-        },
-        {
-            title: "Бренд",
-            dataIndex: "Бренд",
-            key: uuidv4(),
-        },
-        {
-            title: "Наименование",
-            dataIndex: "Наименование",
-            key: uuidv4(),
-            // fixed: 'left',
-        },
-        {
-            title: "Год",
-            dataIndex: "Год",
-            key: uuidv4(),
-        },
-        {
-            title: "Автор",
-            dataIndex: "Автор",
-            key: uuidv4(),
-        },
-        {
-            title: "Серия",
-            dataIndex: "Серия",
-            key: uuidv4(),
-        },
-        {
-            title: "Языки",
-            dataIndex: "Языки",
-            key: uuidv4(),
-        },
-        {
-            title: "Артикул продавца",
-            dataIndex: "Артикул продавца",
-            key: uuidv4(),
-        },
-        {
-            title: "Предмет",
-            dataIndex: "Предмет",
-            key: uuidv4(),
-        },
-    ];
+    const handleKeyDownBrand = (e: any, item: any) => {
+        if (e.key === "Enter") {
+            filteringTable(dataUpdate, item, inputBrand);
+            e.target.blur();
+        }
+    };
+    const handleKeyDownName = (e: any, item: any) => {
+        if (e.key === "Enter") {
+            filteringTable(dataUpdate, item, inputName);
+            e.target.blur();
+        }
+    };
 
     const columns = header.map((item) => {
         if (item === "Дубликаты") {
@@ -427,9 +264,40 @@ function App() {
         if (item === "Бренд") {
             return {
                 title: item,
+                // title: (
+                //     <>
+                //         {item}
+                //         <input
+                //             autoFocus={
+                //                 inputRef.current === document.activeElement
+                //             }
+                //             ref={inputRef}
+                //             placeholder={`${item}`}
+                //             value={inputBrand}
+                //             onChange={(e) => handleChangeInputBrand(e)}
+                //             onKeyDown={(e) => handleKeyDownBrand(e, item)}
+                //             style={{
+                //                 width: "150px",
+                //                 boxSizing: "border-box",
+                //                 padding: "4px 11px",
+                //                 lineHeight: "1.6",
+                //                 border: "1px solid #d9d9d9",
+                //                 borderRadius: "6px",
+                //                 transition: "all 0.2s",
+                //             }}
+                //         />
+                //         <Button
+                //             onClick={() =>
+                //                 filteringTable(dataUpdate, item, inputBrand)
+                //             }
+                //         >
+                //             Поиск
+                //         </Button>
+                //     </>
+                // ),
                 dataIndex: item,
                 key: uuidv4(),
-                ...getColumnSearchProps(item),
+                ...getColumnSearch(item),
             };
         }
         if (item === "Предмет") {
@@ -450,7 +318,7 @@ function App() {
                 title: item,
                 dataIndex: item,
                 key: uuidv4(),
-                ...getColumnSearchProps(item),
+                ...getColumnSearch(item),
             };
         }
         if (item === "Артикул продавца") {
@@ -458,7 +326,7 @@ function App() {
                 title: item,
                 dataIndex: item,
                 key: uuidv4(),
-                ...getColumnSearchProps(item),
+                ...getColumnSearch(item),
             };
         }
         if (item === "Автор") {
@@ -466,7 +334,7 @@ function App() {
                 title: item,
                 dataIndex: item,
                 key: uuidv4(),
-                ...getColumnSearchProps(item),
+                ...getColumnSearch(item),
             };
         }
         if (item === "Год") {
@@ -474,7 +342,7 @@ function App() {
                 title: item,
                 dataIndex: item,
                 key: uuidv4(),
-                ...getColumnSearchProps(item),
+                ...getColumnSearch(item),
             };
         }
         if (item === "Серия") {
@@ -482,7 +350,15 @@ function App() {
                 title: item,
                 dataIndex: item,
                 key: uuidv4(),
-                ...getColumnSearchProps(item),
+                ...getColumnSearch(item),
+            };
+        }
+        if (item === "Языки") {
+            return {
+                title: item,
+                dataIndex: item,
+                key: uuidv4(),
+                ...getColumnSearch(item),
             };
         }
         if (item === "Поступления шт.") {
@@ -540,13 +416,13 @@ function App() {
         };
     });
 
-    const columns2 = header.map((item) => {
+    const columnsNested = header.map((item) => {
         if (item === "Артикул продавца") {
             return {
                 title: item,
                 dataIndex: item,
                 key: uuidv4(),
-                ...getColumnSearchProps(item),
+                ...getColumnSearch(item),
             };
         }
         return {
@@ -556,14 +432,118 @@ function App() {
         };
     });
 
-    // useEffect(() => {
-    //   console.log("Fruit", searchText);
-    // }, [searchText]);
+    // const removeIdFromDuplicate2 = (arr: any) => {
+    //     return arr.reduce((res: any, val: any) => {
+    //         return val["Дубликаты"] > 1
+    //             ? [...res, { ...val, "Артикул продавца": "" }]
+    //             : [...res, val];
+    //     }, []);
+    // };
+
+    const handleDownload = () => {
+        let i = 0;
+        const dataForDownload = data.reduce((res: any, val: any, index) => {
+            if (val["Дубликаты"] > 1) {
+                const duplicateID = val["Список дубликатов"]
+                    .map((el: any) => el["Артикул продавца"])
+                    .join(" ");
+                i++;
+                return (
+                    res +
+                    ` ${i}) "${val["Наименование"]}" "${val["Бренд"]}" ${val["Год"]} \n ${duplicateID} \n`
+                );
+            } else {
+                return res;
+            }
+        }, "");
+
+        console.log(dataForDownload);
+
+        // Создаем данные, которые мы хотим записать в файл
+        const newData = dataForDownload;
+
+        // Создаем объект Blob из данных
+        const blob = new Blob([newData], { type: "text/plain" });
+
+        // Создаем объект URL из Blob
+        const url = URL.createObjectURL(blob);
+
+        // Создаем ссылку на скачивание файла
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "example.txt";
+
+        // Добавляем ссылку на страницу и нажимаем на нее
+        document.body.appendChild(link);
+        link.click();
+
+        // Очищаем ссылку и объект URL
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    };
 
     return (
         <div>
             <h2>Upload Excel File</h2>
             <input type="file" onChange={handleFile} />
+            <Button
+                style={{
+                    margin: "8px",
+                    backgroundColor: "#ffbf04",
+                    color: "white",
+                }}
+                onClick={handleDownload}
+            >
+                Скачать артикулы дубликатов
+            </Button>
+            <span style={{ marginRight: "10px", marginLeft: "30px" }}>
+                Выбранный фильтр:{" "}
+                <span style={{ fontWeight: "bold" }}>{mode}</span>
+            </span>
+            <Button
+                style={{
+                    margin: "8px",
+                    backgroundColor: "#00c5aa",
+                    color: "white",
+                }}
+                onClick={handleBrandNameYear}
+            >
+                Бренд/Имя/Год
+            </Button>
+            <Button
+                style={{
+                    margin: "8px",
+                    backgroundColor: "#4a77f1",
+                    color: "white",
+                }}
+                type="primary"
+                onClick={handleName}
+            >
+                Наименование
+            </Button>
+            <Button
+                style={{
+                    margin: "8px",
+                    backgroundColor: "#894cff",
+                    color: "white",
+                }}
+                onClick={handleAuthor}
+            >
+                Автор
+            </Button>
+
+            <Button
+                style={{
+                    margin: "8px",
+                    backgroundColor: "#d647f4",
+                    color: "white",
+                }}
+                type="primary"
+                onClick={handleSeries}
+            >
+                Серия
+            </Button>
+
             <Table
                 size="small"
                 loading={loading}
@@ -573,7 +553,7 @@ function App() {
                     expandedRowRender: (record) => {
                         return (
                             <Table
-                                columns={columns2}
+                                columns={columnsNested}
                                 dataSource={record["Список дубликатов"]}
                                 pagination={false}
                             />
@@ -586,13 +566,9 @@ function App() {
                     position: ["topCenter"],
                     defaultPageSize: 100,
                     showQuickJumper: true,
+                    showTotal: (total, range) => `Total ${total} items`,
                 }}
             />
-            {/* {loading && (
-        <Spin tip="Loading" size="large">
-          <div className="content" />
-        </Spin>
-      )} */}
         </div>
     );
 }

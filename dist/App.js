@@ -18,41 +18,19 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     }
     return to.concat(ar || Array.prototype.slice.call(from));
 };
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-// import React from "react";
-// import Table from "./views/TableBook";
-import { useEffect, useRef, useState } from "react";
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
+import { useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import * as XLSX from "xlsx";
 import { SearchOutlined } from "@ant-design/icons";
 import { Button, Input, Space, Table } from "antd";
-import Highlighter from "react-highlight-words";
-// import { useRef, useState } from 'react';
 function App() {
     var _a = useState(false), loading = _a[0], setLoading = _a[1];
     var _b = useState([]), data = _b[0], setData = _b[1];
-    var _c = useState([]), header = _c[0], setHeader = _c[1];
-    var _d = useState(true), isSort = _d[0], setIsSort = _d[1];
-    var _e = useState(""), searchAuthor = _e[0], setSearchAuthor = _e[1];
-    var _f = useState(""), searchSeries = _f[0], setSearchSeries = _f[1];
-    var _g = useState("Бренд"), inputFocus = _g[0], setInputFocus = _g[1];
-    var _h = useState(""), filterFocus = _h[0], setFilterFocus = _h[1];
-    var handleLoadingChange = function () {
-        console.log(loading);
-    };
-    // useEffect(() => {
-    //     console.log("loading", loading);
-    // }, [loading]);
-    var handleInputAuthor = function (e) {
-        setInputFocus("Автор");
-        setFilterFocus(e.target.value);
-        setSearchAuthor(e.target.value);
-    };
-    var handleInputSeries = function (e) {
-        setInputFocus("Серия");
-        setFilterFocus(e.target.value);
-        setSearchSeries(e.target.value);
-    };
+    var _c = useState([]), dataUpdate = _c[0], setDataUpdate = _c[1];
+    var _d = useState([]), header = _d[0], setHeader = _d[1];
+    var _e = useState("Бренд/Имя/Год"), mode = _e[0], setMode = _e[1];
+    var _f = useState([]), afterFilterData = _f[0], setAfterFilterData = _f[1];
     var mySort = function (arr) {
         var wow = arr.sort(function (a, b) {
             if (a["Бренд"] < b["Бренд"]) {
@@ -87,6 +65,42 @@ function App() {
             }
         });
         return wow3;
+    };
+    var mySortAuthor = function (arr) {
+        var wow = arr.sort(function (a, b) {
+            if (a["Автор"] < b["Автор"]) {
+                return -1;
+            }
+            if (a["Автор"] > b["Автор"]) {
+                return 1;
+            }
+            return 0;
+        });
+        return wow;
+    };
+    var mySortName = function (arr) {
+        var wow = arr.sort(function (a, b) {
+            if (a["Наименование"] < b["Наименование"]) {
+                return -1;
+            }
+            if (a["Наименование"] > b["Наименование"]) {
+                return 1;
+            }
+            return 0;
+        });
+        return wow;
+    };
+    var mySortSeries = function (arr) {
+        var wow = arr.sort(function (a, b) {
+            if (a["Серия"] < b["Серия"]) {
+                return -1;
+            }
+            if (a["Серия"] > b["Серия"]) {
+                return 1;
+            }
+            return 0;
+        });
+        return wow;
     };
     function myGroup(array) {
         var _a;
@@ -133,17 +147,166 @@ function App() {
         }
         return myArr;
     }
+    function myGroupAuthor(array) {
+        var _a;
+        var myArr = [];
+        var myObj = {};
+        for (var i = 0; i < array.length; i++) {
+            var brand = array[i]["Автор"];
+            if (myObj[brand]) {
+                myObj[brand].push(array[i]);
+            }
+            else {
+                myObj[brand] = [array[i]];
+            }
+        }
+        for (var _i = 0, _b = Object.values(myObj); _i < _b.length; _i++) {
+            var value = _b[_i];
+            myArr.push((_a = {},
+                _a["Бренд"] = value[0]["Бренд"],
+                _a["Наименование"] = value[0]["Наименование"],
+                _a["Год"] = value[0]["Год"],
+                _a["Автор"] = value[0]["Автор"],
+                _a["Серия"] = value[0]["Серия"],
+                _a["Языки"] = value[0]["Языки"],
+                _a["Артикул продавца"] = value[0]["Артикул продавца"],
+                _a["Заказали шт."] = value[0]["Заказали шт."],
+                _a["Поступления шт."] = value.reduce(function (res, val) { return res + val["Поступления шт."]; }, 0),
+                _a["Выкупили, шт."] = value.reduce(function (res, val) { return res + val["Выкупили, шт."]; }, 0),
+                _a["Сумма заказов минус комиссия WB, руб."] = value
+                    .reduce(function (res, val) {
+                    return res + val["Сумма заказов минус комиссия WB, руб."];
+                }, 0)
+                    .toFixed(2),
+                _a["Текущий остаток, шт."] = value.reduce(function (res, val) { return res + val["Текущий остаток, шт."]; }, 0),
+                _a["К перечислению за товар, руб."] = value
+                    .reduce(function (res, val) {
+                    return res + val["К перечислению за товар, руб."];
+                }, 0)
+                    .toFixed(2),
+                _a["Список дубликатов"] = value,
+                _a["Дубликаты"] = value.length,
+                _a["Предмет"] = value[0]["Предмет"],
+                _a.key = uuidv4(),
+                _a));
+        }
+        return myArr;
+    }
+    function myGroupName(array) {
+        var _a;
+        var myArr = [];
+        var myObj = {};
+        for (var i = 0; i < array.length; i++) {
+            var brand = array[i]["Наименование"];
+            if (myObj[brand]) {
+                myObj[brand].push(array[i]);
+            }
+            else {
+                myObj[brand] = [array[i]];
+            }
+        }
+        for (var _i = 0, _b = Object.values(myObj); _i < _b.length; _i++) {
+            var value = _b[_i];
+            myArr.push((_a = {},
+                _a["Бренд"] = value[0]["Бренд"],
+                _a["Наименование"] = value[0]["Наименование"],
+                _a["Год"] = value[0]["Год"],
+                _a["Автор"] = value[0]["Автор"],
+                _a["Серия"] = value[0]["Серия"],
+                _a["Языки"] = value[0]["Языки"],
+                _a["Артикул продавца"] = value[0]["Артикул продавца"],
+                _a["Заказали шт."] = value[0]["Заказали шт."],
+                _a["Поступления шт."] = value.reduce(function (res, val) { return res + val["Поступления шт."]; }, 0),
+                _a["Выкупили, шт."] = value.reduce(function (res, val) { return res + val["Выкупили, шт."]; }, 0),
+                _a["Сумма заказов минус комиссия WB, руб."] = value
+                    .reduce(function (res, val) {
+                    return res + val["Сумма заказов минус комиссия WB, руб."];
+                }, 0)
+                    .toFixed(2),
+                _a["Текущий остаток, шт."] = value.reduce(function (res, val) { return res + val["Текущий остаток, шт."]; }, 0),
+                _a["К перечислению за товар, руб."] = value
+                    .reduce(function (res, val) {
+                    return res + val["К перечислению за товар, руб."];
+                }, 0)
+                    .toFixed(2),
+                _a["Список дубликатов"] = value,
+                _a["Дубликаты"] = value.length,
+                _a["Предмет"] = value[0]["Предмет"],
+                _a.key = uuidv4(),
+                _a));
+        }
+        return myArr;
+    }
+    function myGroupSeries(array) {
+        var _a;
+        var myArr = [];
+        var myObj = {};
+        for (var i = 0; i < array.length; i++) {
+            var brand = array[i]["Серия"];
+            if (myObj[brand]) {
+                myObj[brand].push(array[i]);
+            }
+            else {
+                myObj[brand] = [array[i]];
+            }
+        }
+        for (var _i = 0, _b = Object.values(myObj); _i < _b.length; _i++) {
+            var value = _b[_i];
+            myArr.push((_a = {},
+                _a["Бренд"] = value[0]["Бренд"],
+                _a["Наименование"] = value[0]["Наименование"],
+                _a["Год"] = value[0]["Год"],
+                _a["Автор"] = value[0]["Автор"],
+                _a["Серия"] = value[0]["Серия"],
+                _a["Языки"] = value[0]["Языки"],
+                _a["Артикул продавца"] = value[0]["Артикул продавца"],
+                _a["Заказали шт."] = value[0]["Заказали шт."],
+                _a["Поступления шт."] = value.reduce(function (res, val) { return res + val["Поступления шт."]; }, 0),
+                _a["Выкупили, шт."] = value.reduce(function (res, val) { return res + val["Выкупили, шт."]; }, 0),
+                _a["Сумма заказов минус комиссия WB, руб."] = value
+                    .reduce(function (res, val) {
+                    return res + val["Сумма заказов минус комиссия WB, руб."];
+                }, 0)
+                    .toFixed(2),
+                _a["Текущий остаток, шт."] = value.reduce(function (res, val) { return res + val["Текущий остаток, шт."]; }, 0),
+                _a["К перечислению за товар, руб."] = value
+                    .reduce(function (res, val) {
+                    return res + val["К перечислению за товар, руб."];
+                }, 0)
+                    .toFixed(2),
+                _a["Список дубликатов"] = value,
+                _a["Дубликаты"] = value.length,
+                _a["Предмет"] = value[0]["Предмет"],
+                _a.key = uuidv4(),
+                _a));
+        }
+        return myArr;
+    }
+    var handleAuthor = function () {
+        setData(myGroupAuthor(mySortAuthor(dataUpdate)));
+        setMode("Автор");
+    };
+    var handleName = function () {
+        setData(myGroupName(mySortName(dataUpdate)));
+        setMode("Наименование");
+    };
+    var handleSeries = function () {
+        setData(myGroupSeries(mySortSeries(dataUpdate)));
+        setMode("Серия");
+    };
+    var handleBrandNameYear = function () {
+        setData(myGroup(mySort(dataUpdate)));
+        setMode("Бренд/Имя/Год");
+    };
     var handleFile = function (e) {
         e.preventDefault();
         var files = e.target.files;
         if (files && files[0]) {
             var reader = new FileReader();
             reader.onloadstart = function () {
-                // console.log("start");
                 setLoading(true);
             };
             reader.onloadend = function () {
-                // console.log("end");
                 setLoading(false);
             };
             reader.onload = function (e) {
@@ -159,6 +322,7 @@ function App() {
                         header: 2,
                     });
                     var headerTableNew = ["Дубликаты"].concat(__spreadArray([], headerTable, true));
+                    setDataUpdate(dataTable);
                     var newDataTable = myGroup(mySort(dataTable));
                     setData(newDataTable);
                     setHeader(headerTableNew);
@@ -167,53 +331,19 @@ function App() {
             reader.readAsBinaryString(files[0]);
         }
     };
-    // const filteredData = () => {
-    //   if (searchSeries && searchAuthor) {
-    //     const newData = data.filter((item) => {
-    //       return item["Автор"].toLowerCase().includes(searchAuthor.toLowerCase());
-    //     });
-    //     return newData.filter((item) => {
-    //       return item["Серия"].toLowerCase().includes(searchSeries.toLowerCase());
-    //     });
-    //   }
-    //   return data.filter((item) => {
-    //     return item[inputFocus].toLowerCase().includes(filterFocus.toLowerCase());
-    //   });
-    // };
-    var _j = useState(""), searchText = _j[0], setSearchText = _j[1];
-    var _k = useState(""), searchedColumn = _k[0], setSearchedColumn = _k[1];
     var searchInput = useRef(null);
-    var handleSearch = function (selectedKeys, dataIndex) {
-        // console.log('МММММММММ',searchText, searchedColumn, searchInput);
-        // confirm();
-        // console.log("selectedKeys", selectedKeys);
-        setSearchText(selectedKeys[0]);
-        setSearchedColumn(dataIndex);
-    };
-    var handleReset = function (clearFilters) {
-        clearFilters();
-        setSearchText("");
-    };
     var getColumnSearchProps = function (dataIndex) { return ({
         filterDropdown: function (_a) {
             var setSelectedKeys = _a.setSelectedKeys, selectedKeys = _a.selectedKeys, confirm = _a.confirm, clearFilters = _a.clearFilters, close = _a.close;
-            return (_jsxs("div", __assign({ style: { padding: 8 }, onKeyDown: function (e) { return e.stopPropagation(); } }, { children: [_jsx(Input, { ref: function (el) {
-                            // console.log('REFFF',el);
-                            searchInput.current = el;
-                        }, placeholder: "Search ".concat(dataIndex), value: selectedKeys[0], onChange: function (e) {
-                            console.log(selectedKeys);
-                            // setSearchText(selectedKeys[0])
+            return (_jsxs("div", __assign({ style: { padding: 8 }, onKeyDown: function (e) { return e.stopPropagation(); } }, { children: [_jsx(Input, { ref: function (el) { return (searchInput.current = el); }, placeholder: "Search ".concat(dataIndex), value: selectedKeys[0], onChange: function (e) {
                             setSelectedKeys(e.target.value ? [e.target.value] : []);
-                        }, onPressEnter: function () { return confirm(); }, style: { marginBottom: 8, display: "block" } }), _jsxs(Space, { children: [_jsx(Button, __assign({ type: "primary", onClick: function () { return confirm(); }, icon: _jsx(SearchOutlined, {}), size: "small", style: { width: 90 } }, { children: "Search" })), _jsx(Button, __assign({ onClick: function () {
-                                    return clearFilters && handleReset(clearFilters);
-                                }, size: "small", style: { width: 90 } }, { children: "Reset" })), _jsx(Button, __assign({ type: "link", size: "small", onClick: function () {
+                        }, onPressEnter: function () { return confirm(); }, style: { marginBottom: 8, display: "block" } }), _jsxs(Space, { children: [_jsx(Button, __assign({ type: "primary", onClick: function () { return confirm(); }, icon: _jsx(SearchOutlined, {}), size: "small", style: { width: 90 } }, { children: "Search" })), _jsx(Button, __assign({ onClick: function () { return clearFilters && clearFilters(); }, size: "small", style: { width: 90 } }, { children: "Reset" })), _jsx(Button, __assign({ type: "link", size: "small", onClick: function () {
                                     close();
                                 } }, { children: "close" }))] })] })));
         },
         filterIcon: function (filtered) { return (_jsx(SearchOutlined, { style: { color: filtered ? "#1890ff" : undefined } })); },
         onFilter: function (value, record) {
             var _a;
-            console.log("record", record[dataIndex], value);
             return (_a = record[dataIndex]) === null || _a === void 0 ? void 0 : _a.toString().toLowerCase().includes(value.toLowerCase());
         },
         onFilterDropdownOpenChange: function (visible) {
@@ -221,16 +351,8 @@ function App() {
             //     setTimeout(() => searchInput.current?.select(), 100);
             //   }
         },
-        render: function (text) {
-            return (_jsx(Highlighter, { highlightStyle: { backgroundColor: "#ffc069", padding: 0 }, searchWords: [searchText], autoEscape: true, textToHighlight: text ? text.toString() : "" }));
-        },
+        render: function (text) { return text; },
     }); };
-    useEffect(function () {
-        console.log("AAAAAAAA", searchText, searchedColumn, searchInput);
-    }, [searchText, searchedColumn, searchInput]);
-    // useEffect(() => {
-    //     console.log('searchInput', searchInput);
-    // }, [searchInput])
     var columns3 = [
         {
             title: "Дубликаты",
@@ -331,7 +453,10 @@ function App() {
     var columns = header.map(function (item) {
         if (item === "Дубликаты") {
             return {
-                title: item,
+                title: function () {
+                    // console.log("afterFilterData", afterFilterData);
+                    return item;
+                },
                 dataIndex: item,
                 sorter: function (a, b) { return b[item] - a[item]; },
                 key: uuidv4(),
@@ -369,9 +494,12 @@ function App() {
         if (item === "Серия") {
             return __assign({ title: item, dataIndex: item, key: uuidv4() }, getColumnSearchProps(item));
         }
+        if (item === "Языки") {
+            return __assign({ title: item, dataIndex: item, key: uuidv4() }, getColumnSearchProps(item));
+        }
         if (item === "Поступления шт.") {
             return {
-                title: item,
+                title: (_jsx(_Fragment, { children: _jsx("p", { children: item }) })),
                 dataIndex: item,
                 sorter: function (a, b) { return b[item] - a[item]; },
                 key: uuidv4(),
@@ -433,10 +561,56 @@ function App() {
             key: uuidv4(),
         };
     });
+    // const [pagination, setPagination] = useState({
+    //     position: ["topCenter"],
+    //     defaultPageSize: 100,
+    //     showQuickJumper: true,
+    // });
+    var _g = useState({}), sorter = _g[0], setSorter = _g[1];
+    var _h = useState({}), filters = _h[0], setFilters = _h[1];
+    var handleTableChange = function (pagination, _filters, _sorter, extra) {
+        // console.log("VVVVVVV", extra, _filters, _sorter);
+        // setFilters(_filters)
+        // setSorter(_sorter)
+        // setDataUpdate(extra.currentDataSource.length)
+    };
+    var rowSelection = {
+        onChange: function (selectedRowKeys, selectedRows) {
+            console.log('FFFFFFFFFF', selectedRowKeys.currentDataSource);
+            setAfterFilterData(selectedRowKeys.currentDataSource);
+        },
+        // getCheckboxProps: record => {
+        //     return {
+        //         disabled: record.working != null,
+        //         name: record.working
+        //     };
+        // }
+    };
     // useEffect(() => {
-    //   console.log("Fruit", searchText);
-    // }, [searchText]);
-    return (_jsxs("div", { children: [_jsx("h2", { children: "Upload Excel File" }), _jsx("input", { type: "file", onChange: handleFile }), _jsx(Table, { size: "small", loading: loading, columns: columns, dataSource: data, expandable: {
+    //     console.log('afterFilterData',afterFilterData)
+    // }, [afterFilterData])
+    return (_jsxs("div", { children: [_jsx("h2", { children: "Upload Excel File" }), _jsx("input", { type: "file", onChange: handleFile }), _jsxs("span", __assign({ style: { marginRight: "10px" } }, { children: ["\u0412\u044B\u0431\u0440\u0430\u043D\u043D\u044B\u0439 \u0444\u0438\u043B\u044C\u0442\u0440:", " ", _jsx("span", __assign({ style: { fontWeight: "bold" } }, { children: mode }))] })), _jsx(Button, __assign({ style: {
+                    margin: "8px",
+                    backgroundColor: "#00c5aa",
+                    color: "white",
+                }, onClick: handleBrandNameYear }, { children: "\u0411\u0440\u0435\u043D\u0434/\u0418\u043C\u044F/\u0413\u043E\u0434" })), _jsx(Button, __assign({ style: {
+                    margin: "8px",
+                    backgroundColor: "#4a77f1",
+                    color: "white",
+                }, type: "primary", onClick: handleName }, { children: "\u041D\u0430\u0438\u043C\u0435\u043D\u043E\u0432\u0430\u043D\u0438\u0435" })), _jsx(Button, __assign({ style: {
+                    margin: "8px",
+                    backgroundColor: "#894cff",
+                    color: "white",
+                }, onClick: handleAuthor }, { children: "\u0410\u0432\u0442\u043E\u0440" })), _jsx(Button, __assign({ style: {
+                    margin: "8px",
+                    backgroundColor: "#d647f4",
+                    color: "white",
+                }, type: "primary", onClick: handleSeries }, { children: "\u0421\u0435\u0440\u0438\u044F" })), _jsx(Table, { size: "small", 
+                // filters={filters}
+                // sorter={sorter}
+                loading: loading, columns: columns, dataSource: __spreadArray([], data, true), onChange: handleTableChange, 
+                // rowSelection={rowSelection}
+                expandable: {
                     expandedRowRender: function (record) {
                         return (_jsx(Table, { columns: columns2, dataSource: record["Список дубликатов"], pagination: false }));
                     },
@@ -445,6 +619,7 @@ function App() {
                     position: ["topCenter"],
                     defaultPageSize: 100,
                     showQuickJumper: true,
+                    showTotal: function (total, range) { return "Total ".concat(total, " items"); },
                 } })] }));
 }
 export default App;
