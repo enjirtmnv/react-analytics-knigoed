@@ -37,15 +37,6 @@ function App() {
             .replace(/\B(?=(\d{3})+(?!\d))/g, " ");
     };
 
-    const removeSoldOut = () => {
-        const daa = data.filter((el: any) => {
-            if (el["Текущий остаток, шт."] > 0) {
-                return el;
-            }
-        });
-        setData(daa);
-    };
-
     // const removeIdFromDuplicate = (arr: any) => {
     //     return arr.reduce((res: any, val: any) => {
     //         return val["Дубликаты"] > 1
@@ -54,21 +45,38 @@ function App() {
     //     }, []);
     // };
 
-    const handleAuthor = () => {
-        setData(groupingTableAuthor(sortTableAuthor(dataUpdate)));
+    const handleAuthor = (arr: any) => {
+        setData(groupingTableAuthor(sortTableAuthor(arr)));
         setMode("Автор");
     };
-    const handleName = () => {
-        setData(groupingTableName(sortTableName(dataUpdate)));
+    const handleName = (arr: any) => {
+        setData(groupingTableName(sortTableName(arr)));
         setMode("Наименование");
     };
-    const handleSeries = () => {
-        setData(groupingTableSeries(sortTableSeries(dataUpdate)));
+    const handleSeries = (arr: any) => {
+        setData(groupingTableSeries(sortTableSeries(arr)));
         setMode("Серия");
     };
-    const handleBrandNameYear = () => {
-        setData(groupingTableBrandNameYear(sortTableBrandNameYear(dataUpdate)));
+    const handleBrandNameYear = (arr: any) => {
+        setData(groupingTableBrandNameYear(sortTableBrandNameYear(arr)));
         setMode("Бренд/Имя/Год");
+    };
+
+    const removeSoldOut = () => {
+        const dataStock = dataUpdate.filter((el: any) => {
+            if (el["Текущий остаток, шт."] > 0) {
+                return el;
+            }
+        });
+        if (mode === "Автор") {
+            handleAuthor(dataStock);
+        } else if (mode === "Наименование") {
+            handleName(dataStock);
+        } else if (mode === "Серия") {
+            handleSeries(dataStock);
+        } else if (mode === "Бренд/Имя/Год") {
+            handleBrandNameYear(dataStock);
+        }
     };
 
     const handleFile = (e: any) => {
@@ -489,7 +497,7 @@ function App() {
                     backgroundColor: "#00c5aa",
                     color: "white",
                 }}
-                onClick={handleBrandNameYear}
+                onClick={() => handleBrandNameYear(dataUpdate)}
             >
                 Бренд/Имя/Год
             </Button>
@@ -500,7 +508,7 @@ function App() {
                     color: "white",
                 }}
                 type="primary"
-                onClick={handleName}
+                onClick={() => handleName(dataUpdate)}
             >
                 Наименование
             </Button>
@@ -510,7 +518,7 @@ function App() {
                     backgroundColor: "#894cff",
                     color: "white",
                 }}
-                onClick={handleAuthor}
+                onClick={() => handleAuthor(dataUpdate)}
             >
                 Автор
             </Button>
@@ -522,7 +530,7 @@ function App() {
                     color: "white",
                 }}
                 type="primary"
-                onClick={handleSeries}
+                onClick={() => handleSeries(dataUpdate)}
             >
                 Серия
             </Button>
